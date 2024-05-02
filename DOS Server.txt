@@ -1,0 +1,46 @@
+import socket
+import logging
+
+# Setup basic logging
+logging.basicConfig(level=logging.INFO)
+
+HOST = '0.0.0.0'  # Listen on all available network interfaces
+PORT = 12345  # Choose a port number (make sure it's not already in use)
+
+# Create a TCP socket
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# This option helps in reusing the same port (helpful after a server restart)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+# Bind the socket to the host and port
+server_socket.bind((HOST, PORT))
+
+# Listen for incoming connections
+server_socket.listen()
+logging.info(f"Server listening on {HOST}:{PORT}")
+
+try:
+    while True:  # Main loop to accept incoming connections
+        client_socket, client_address = server_socket.accept()
+        logging.info(f"Connection from {client_address}")
+
+        try:
+            while True:  # Loop to handle continuous communication
+                # Example of receiving data (you can adjust according to your needs)
+                data = client_socket.recv(1024)
+                if not data:
+                    break  # Break the loop if no data is received
+                logging.info(f"Received data from {client_address}: {data.decode()}")
+
+                # Example sending data back - echo (you can adjust this part)
+                client_socket.sendall(data)
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+        finally:
+            client_socket.close()  # Make sure to close the client socket
+
+except KeyboardInterrupt:
+    logging.info("Server is shutting down.")
+finally:
+    server_socket.close()  # Ensure the server socket is closed on exit

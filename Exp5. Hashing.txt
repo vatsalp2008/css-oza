@@ -1,0 +1,85 @@
+import hashlib
+import random
+from Crypto.PublicKey import RSA
+from Crypto.Signature import pkcs1_15
+from Crypto.Hash import SHA256
+
+def custom_hash(data):
+    # Create a random nonce each time
+    nonce = random.randint(1, 1000000)
+    # Basic hashing mechanism
+    hash_object = hashlib.sha256((data + str(nonce)).encode())
+    hash_digest = hash_object.hexdigest()
+    return hash_digest, nonce
+
+def generate_keys():
+    key = RSA.generate(2048)
+    private_key = key.export_key()
+    public_key = key.publickey().export_key()
+    return private_key, public_key
+
+def sign_data(data, private_key):
+    key = RSA.import_key(private_key)
+    hash_object = SHA256.new(data.encode())
+    signature = pkcs1_15.new(key).sign(hash_object)
+    return signature
+
+def verify_signature(data, signature, public_key):
+    key = RSA.import_key(public_key)
+    hash_object = SHA256.new(data.encode())
+    try:
+        pkcs1_15.new(key).verify(hash_object, signature)
+        return True
+    except (ValueError, TypeError):
+        return False
+
+# Taking user input
+input_data = input("Enter the data you want to hash and sign: ")
+
+# Processing the hash and nonce
+hash_result, nonce = custom_hash(input_data)
+
+# RSA Key Generation
+private_key, public_key = generate_keys()
+
+# Signing the data with the nonce added to ensure uniqueness
+signature = sign_data(input_data + str(nonce), private_key)
+
+# Verification of the signed data
+verification = verify_signature(input_data + str(nonce), signature, public_key)
+
+print("Hash Result:", hash_result)
+print("Nonce:", nonce)
+print("Signature (in hexadecimal):", signature.hex())
+print("Verification Result:", verification)
+
+
+
+Hashing algorithms are fundamental components of computer science, cryptography, and information security. They serve various purposes, including data retrieval, data storage, and cryptographic operations. Here's a broad overview of hashing algorithms:
+
+1. **Definition**: Hashing is the process of converting input data (or 'message') into a fixed-size string of bytes, typically of a much smaller size, through a mathematical function known as a hash function.
+
+2. **Properties**:
+    - **Deterministic**: For a given input, a hash function always produces the same output.
+    - **Fast Computation**: Hash functions are designed for fast computation, allowing them to process large volumes of data efficiently.
+    - **Irreversibility**: It is computationally infeasible to reverse the output of a hash function to retrieve the original input.
+    - **Avalanche Effect**: A small change in the input should produce a significantly different hash value.
+    - **Uniformity**: Hash values should be uniformly distributed across the output space.
+
+3. **Common Applications**:
+    - **Data Integrity**: Hash functions are used to verify the integrity of data by generating a hash value for the original data and comparing it with the hash value calculated for the received data.
+    - **Password Storage**: Hashing is commonly used to securely store passwords. Instead of storing passwords directly, systems store their hash values, making it difficult for attackers to retrieve the original passwords.
+    - **Cryptographic Signatures**: Hash functions are integral to digital signatures, providing a compact representation of data that can be signed and verified.
+    - **Data Retrieval**: Hashing is used in data structures like hash tables, enabling efficient storage and retrieval of key-value pairs.
+    - **Blockchain Technology**: Hash functions play a crucial role in blockchain technology, where they are used to create a secure and tamper-proof ledger of transactions.
+
+4. **Types of Hashing Algorithms**:
+    - **Cryptographic Hash Functions**: These hash functions are designed for security applications and must satisfy properties like collision resistance and preimage resistance. Examples include SHA-256 (Secure Hash Algorithm 256-bit) and MD5 (Message Digest Algorithm 5).
+    - **Non-Cryptographic Hash Functions**: These hash functions are optimized for speed and are commonly used in applications like hash tables and data retrieval. Examples include MurmurHash and CityHash.
+
+5. **Security Considerations**:
+    - **Collision Resistance**: A good cryptographic hash function should make it computationally infeasible to find two different inputs that produce the same hash value.
+    - **Preimage Resistance**: Given a hash value, it should be computationally infeasible to find any input that produces that hash value.
+    - **Key Derivation**: Hash functions are used in key derivation functions (KDFs) to derive cryptographic keys from passwords while adding computational cost to thwart brute-force attacks.
+
+In summary, hashing algorithms are versatile tools with applications ranging from ensuring data integrity to providing security in password storage and cryptographic operations. They play a critical role in modern computing and are continuously evolving to meet the demands of emerging technologies and security threats.

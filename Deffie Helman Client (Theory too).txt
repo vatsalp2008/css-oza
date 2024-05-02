@@ -1,0 +1,77 @@
+import socket
+import random
+
+HOST = '192.168.0.101'
+PORT = 12345
+
+# Create a TCP socket
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Connect to the server
+client_socket.connect((HOST, PORT))
+
+# client_socket.sendall("encryption key is 5".encode())
+# received_key = client_socket.recv(1024)
+# print(received_key.decode())
+
+a = int(input("Enter a: "))
+b = int(input("Enter b: "))
+x = int(input("Enter x: "))
+public_key = (a**x) % b
+client_socket.sendall(f"{public_key}".encode())
+
+received_key = int(client_socket.recv(1024).decode())
+private_key = (received_key**x) % b
+print("shared key is", private_key)
+print(f"Connected to {HOST}:{PORT}")
+
+# Send and receive data in a loop
+while True:
+    # Send data to the server
+    message = input("Enter message to send (type 'exit' to quit): ")
+    if message.lower() == 'exit':
+        break
+    client_socket.sendall(message.encode())
+
+    # Receive response from the server
+    response = client_socket.recv(1024)
+    print("Received response:", response.decode())
+
+# Close the client socket
+client_socket.close()
+
+
+
+The Diffie-Hellman key exchange is a method of securely exchanging cryptographic keys over a public channel and was one of the first public-key protocols as originally conceptualized by Ralph Merkle and named after Whitfield Diffie and Martin Hellman. Here’s a detailed explanation of how it works:
+
+### Basic Concept
+Diffie-Hellman enables two parties that have no prior knowledge of each other to jointly establish a shared secret key over an insecure channel. This key can then be used to encrypt subsequent communications using a symmetric key cipher.
+
+### Mathematical Foundation
+The security of Diffie-Hellman comes from the difficulty of solving discrete logarithm problems. The algorithm uses two primary numbers: a large prime \( p \) and a base \( g \) (also called a generator). These numbers are public and can be known by everyone in the network.
+
+### Key Exchange Process
+
+1. **Initialization**:
+   - Both parties agree on a large prime \( p \) and a base \( g \), which are made public.
+
+2. **Key Generation**:
+   - Each party generates a private key secretly. Let’s denote the private keys as \( a \) for Alice and \( b \) for Bob.
+   - Each party then computes a public value. Alice computes \( A = g^a \mod p \) and Bob computes \( B = g^b \mod p \). These values are computed such that they are powers of the base \( g \) raised to the secret key, modulo \( p \).
+
+3. **Key Exchange**:
+   - Alice sends her computed value \( A \) to Bob, and Bob sends his computed value \( B \) to Alice.
+   - Each party then raises the received value to their private key. Alice computes \( s = B^a \mod p \) and Bob computes \( s = A^b \mod p \).
+
+4. **Shared Secret**:
+   - After the calculations, both Alice and Bob find that their computed values are identical: \( s = g^{ab} \mod p \). This value, \( s \), is the shared secret key.
+
+### Security Considerations
+- The Diffie-Hellman key exchange itself does not provide authentication. Either party could be fooled into communicating with an impostor unless some form of authentication is used.
+- The method is vulnerable to a man-in-the-middle attack where an attacker intercepts the key exchange process and establishes separate keys with each party.
+- To strengthen security, it is often used in conjunction with other cryptographic mechanisms that can provide authentication and added security layers.
+
+### Modern Usage
+Diffie-Hellman is widely used in various forms of technology, especially in protocols like SSL/TLS for securing websites. It also forms the basis of many cryptographic protocols used in modern applications for secure communications.
+
+Overall, Diffie-Hellman remains a fundamental and widely implemented method in the field of cryptography, demonstrating the lasting impact of its innovative approach to "key exchange" in an open network.

@@ -1,0 +1,228 @@
+## SUBSTITUTION ##
+
+capital = {chr(i): i - 65 for i in range(65, 91)}
+small = {chr(i): i - 97 for i in range(97, 123)}
+
+def encrypt(plain_text, shift):
+    cipher_text = []
+    for char in plain_text:
+        if char.isalpha():
+            if char.isupper():
+                cipher_text.append(chr((capital[char] + shift) % 26 + 65))
+            elif char.islower():
+                cipher_text.append(chr((small[char] + shift) % 26 + 97))
+        else:
+            cipher_text.append(char)
+    return "".join(cipher_text)
+
+def decrypt(cipher_text, shift):
+    plain_text = []
+    for char in cipher_text:
+        if char.isalpha():
+            if char.isupper():
+                plain_text.append(chr((capital[char] - shift) % 26 + 65))
+            elif char.islower():
+                plain_text.append(chr((small[char] - shift) % 26 + 97))
+        else:
+            plain_text.append(char)
+    return "".join(plain_text)
+
+txt = input('Enter the plain text: ')
+key = int(input('Enter the key: '))
+encrypted_text = encrypt(txt, key)
+print("Encrypted text: ", encrypted_text)
+print('Decrypted text: ', decrypt(encrypted_text, key))
+
+####OUTPUT###
+Enter the text:(any one word)
+enter the key (0-25)any number between this
+
+
+## DIFFIE HELLMAN ##
+
+** SERVER.PY **
+import socket
+
+HOST = '127.0.0.1' 
+PORT = 65432      
+
+P = 23
+G = 9
+print('P:', P)
+print('G:', G)
+private_key = 4
+x = (G ** private_key) % P
+y = 0
+print(x)
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+
+    server_socket.bind((HOST, PORT))
+
+    server_socket.listen()
+    print("Server is listening on", (HOST, PORT))
+  
+    conn, addr = server_socket.accept()
+    with conn:
+        print('Connected by', addr)
+        while True:
+        
+            data = conn.recv(1024)
+            if not data:
+                break
+            print('Received from client:', data.decode())
+            y = int(data.decode())
+            
+            reply = input("Enter a message to send to the client: ")
+            conn.sendall(reply.encode())
+            ka = (y ** private_key) % P
+
+            print("Shared secret key is", ka)
+
+
+** CLIENT.PY **
+import socket
+
+
+HOST = '127.0.0.1'  
+PORT = 65432       
+
+P = 23
+G = 9
+print('P:', P)
+print('G:', G)
+private_key = 3
+y = (G ** private_key) % P
+x = 0
+print(y)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+    
+    client_socket.connect((HOST, PORT))
+    while True:
+  
+        message = input("Enter the message: ")
+        client_socket.sendall(message.encode())
+        if message.lower() == 'quit':
+            break
+ 
+        received_data = client_socket.recv(1024)
+        print('Received from server:', received_data.decode())
+        x = int(received_data.decode())
+        kb = (x ** private_key) % P
+
+        print('Shared secret key is', kb)
+
+
+
+
+
+
+
+
+
+
+
+
+## RSA ##
+
+** SERVER.PY **
+import socket
+
+def calc_d(a, m):
+    m0, x0, x1 = m, 0, 1
+    while a > 1:
+        q = a // m
+        m, a = a % m, m
+        x0, x1 = x1 - q * x0, x0
+    return x1 % m0 if a == 1 else None
+
+HOST = '127.0.0.1' 
+PORT = 65432    
+
+
+p = 17
+q = 11
+
+n = p * q
+totient = (p - 1) * (q - 1)
+
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+
+    server_socket.bind((HOST, PORT))
+    server_socket.listen()
+    print("Server is listening on", (HOST, PORT))
+
+    conn, addr = server_socket.accept()
+    with conn:
+        print('Connected by', addr)
+        while True:
+
+            data = conn.recv(1024)
+            if not data:
+                break
+            message = data.decode()
+            e, C = message.split()
+            
+            conn.sendall(data)
+
+
+
+d = calc_d(int(e), totient)
+M = (int(C) ** d) % n
+
+print("The plain text is", M)
+
+** CLIENT.PY **
+import socket
+import math
+
+def calc_e(totient):
+    for i in range(2, totient):
+        if math.gcd(i, totient) == 1:
+            return i
+
+
+HOST = '127.0.0.1' 
+PORT = 65432      
+
+p = 17
+q = 11
+
+n = p * q
+totient = (p - 1) * (q - 1)
+
+e = calc_e(totient)
+
+M = 88
+C = (M ** e) % n
+print(e, C)
+
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+
+    client_socket.connect((HOST, PORT))
+
+    message = input("Enter a message to send to the server: ")
+    client_socket.sendall(message.encode())
+
+    received_data = client_socket.recv(1024)
+    print('Received from server:', received_data.decode())
+
+
+
+## TRANSPOSITION ##
+def split_len(seq, length):
+   return [seq[i:i + length] for i in range(0, len(seq), length)]
+def encode(key, plaintext):
+    order = {int(val): num for num, val in enumerate(key)}
+    ciphertext = ''
+
+    for index in sorted(order.keys()):
+        for part in split_len(plaintext, len(key)):
+            try:
+                ciphertext += part[order[index]]
+            except IndexError:
+                continue
+    return ciphertext
+print(encode('3214', 'MerryChristmas'))
